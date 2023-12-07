@@ -3,8 +3,8 @@ import std/strutils
 import sequtils
 import std/enumerate
 
-# let input = readFile "inputs/day5.txt"
-let input = readFile "inputs/day5-example.txt"
+let input = readFile "inputs/day5.txt"
+# let input = readFile "inputs/day5-example.txt"
 
 let split_input = input.strip.split("\n\n")
 
@@ -22,13 +22,13 @@ iterator range_iterator(range: tuple[source: seq[int], destination: seq[int]]): 
     for (idx, item) in enumerate(range.source):
         yield (source: item, destination: range.destination[idx])
 
-func make_table(ranges: tuple[source: seq[int], destination: seq[int]]): Table[int, int] =
-    var table = initTable[int, int]()
+# func make_table(ranges: tuple[source: seq[int], destination: seq[int]]): Table[int, int] =
+#     var table = initTable[int, int]()
 
-    for r in range_iterator(ranges):
-        table[r.source] = r.destination
+#     for r in range_iterator(ranges):
+#         table[r.source] = r.destination
 
-    table
+#     table
 
 func extend_table(table: var Table[int, int], ranges: tuple[source: seq[int], destination: seq[int]]) =
     for r in range_iterator(ranges):
@@ -40,8 +40,6 @@ echo seeds
 
 for (idx, item) in enumerate(split_input[1..split_input.high]):
     let split_item = item.splitLines.mapIt(it.split(" "))
-
-    let map_type = split_item[0][0].split("-")[0]
     let map_ranges = split_item[1..split_item.high].mapIt(it.map(parseInt))
 
     var type_table = initTable[int, int]()
@@ -55,4 +53,4 @@ for (idx, item) in enumerate(split_input[1..split_input.high]):
 
     # echo map_type, type_table
 
-echo seeds
+echo min seeds
