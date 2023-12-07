@@ -1,0 +1,1 @@
+let input = readFile "inputs/day3.txt"
