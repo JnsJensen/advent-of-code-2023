@@ -30,7 +30,6 @@ iterator window[T](sequence: seq[T], size: int, edges: bool = false, step: int =
 iterator distinct_pairs[T](sequence: seq[T]): tuple[lower: T, upper: T] =
     var i = 0
     while i < sequence.len - 1:
-        # yield sequence[i..i+1]
         yield (sequence[i], sequence[i+1])
         inc(i, 2)
 
