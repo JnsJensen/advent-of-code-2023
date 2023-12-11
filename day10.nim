@@ -1,8 +1,6 @@
 import std/strutils
 import options
 import std/enumerate
-import std/strformat
-import sequtils
 
 type
     Direction = enum
@@ -18,9 +16,10 @@ type
     Piece = Option[Pipe]
     PieceGrid = seq[seq[Piece]]
     LoopGrid = seq[seq[TileType]]
+    CharGrid = seq[seq[char]]
     Position = tuple[x: int, y: int]
 
-func even(n: int): bool = n mod 2 == 0
+# func even(n: int): bool = n mod 2 == 0
 func odd(n: int): bool = n mod 2 == 1
 
 func opposite(direction: Direction): Direction =
@@ -45,15 +44,18 @@ proc walk(direction: Direction, pos: Position): Position =
     of RIGHT:
         result = (x: pos.x + 1, y: pos.y)
 
-let input = strip readFile "inputs/day10-example.txt"
-# let input = strip readFile "inputs/day10.txt"
+# let input = strip readFile "inputs/day10-example.txt"
+let input = strip readFile "inputs/day10.txt"
 
 var grid: PieceGrid = @[]
+var char_grid: CharGrid = @[]
 var start: Position = (x: 0, y: 0)
 
 for (lidx, line) in enumerate(input.split("\n")):
     var row: seq[Piece] = @[]
+    var char_row: seq[char] = @[]
     for (cidx, c) in enumerate(line):
+        char_row.add c
         case c:
         of 'F':
             row.add some (c1: DOWN, c2: RIGHT)
@@ -73,6 +75,7 @@ for (lidx, line) in enumerate(input.split("\n")):
         else:
             row.add none Pipe
     grid.add row
+    char_grid.add char_row
 
 func valid_connection(pipe: Pipe, direction: Direction): bool =
     case direction:
@@ -86,7 +89,7 @@ func valid_connection(pipe: Pipe, direction: Direction): bool =
         pipe.c1 == LEFT or pipe.c2 == LEFT
 
 # infer what type of pipe the start is
-var startPipe: Pipe
+# var startPipe: Pipe
 
 # in all 4 adjacent cells, add a pipe
 var connections: seq[Direction] = @[]
@@ -146,109 +149,65 @@ while not ended:
     loop_grid[pos.y][pos.x] = LOOP
     steps.add next_direction
 
-func is_horizontal(piece: Piece): bool =
-    if isNone piece:
-        return false
-    let pipe = get piece
-    return pipe.c1 == LEFT or pipe.c1 == RIGHT or pipe.c2 == LEFT or pipe.c2 == RIGHT
+func is_7(pipe: Pipe): bool =
+    return pipe.c1 == DOWN and pipe.c2 == LEFT or
+        pipe.c1 == LEFT and pipe.c2 == DOWN
 
-func is_vertical(piece: Piece): bool =
-    if isNone piece:
-        return false
-    let pipe = get piece
-    return pipe.c1 == UP or pipe.c1 == DOWN or pipe.c2 == UP or pipe.c2 == DOWN
+func is_J(pipe: Pipe): bool =
+    return pipe.c1 == UP and pipe.c2 == LEFT or
+        pipe.c1 == LEFT and pipe.c2 == UP
+
+func is_F(pipe: Pipe): bool =
+    return pipe.c1 == DOWN and pipe.c2 == RIGHT or
+        pipe.c1 == RIGHT and pipe.c2 == DOWN
+
+func is_L(pipe: Pipe): bool =
+    return pipe.c1 == UP and pipe.c2 == RIGHT or
+        pipe.c1 == RIGHT and pipe.c2 == UP
+
+func is_vertical(pipe: Pipe): bool =
+    return pipe.c1 == UP and pipe.c2 == DOWN or
+        pipe.c1 == DOWN and pipe.c2 == UP
 
 proc check_enclosed(pos: Position): bool =
-    var
-        up = false
-        down = false
-        left = false
-        right = false
-        up_amount = 0
-        down_amount = 0
-        left_amount = 0
-        right_amount = 0
-
+    var left_amount = 0
+    var prev = ""
     var moving_pos = pos
-    while true:
-        moving_pos = walk(UP, moving_pos)
-        if moving_pos.x < 0 or moving_pos.y < 0 or moving_pos.y > loop_grid.high or moving_pos.x > loop_grid[moving_pos.y].high:
-            break
-        if loop_grid[moving_pos.y][moving_pos.x] == LOOP:
-            let piece = grid[moving_pos.y][moving_pos.x]
-            if is_horizontal(piece):
-                up = true
-                up_amount += 1
-    
-    moving_pos = pos
-    while true:
-        moving_pos = walk(DOWN, moving_pos)
-        if moving_pos.x < 0 or moving_pos.y < 0 or moving_pos.y > loop_grid.high or moving_pos.x > loop_grid[moving_pos.y].high:
-            break
-        if loop_grid[moving_pos.y][moving_pos.x] == LOOP:
-            let piece = grid[moving_pos.y][moving_pos.x]
-            if is_horizontal(piece):
-                down = true
-                down_amount += 1
-    
-    moving_pos = pos
     while true:
         moving_pos = walk(LEFT, moving_pos)
         if moving_pos.x < 0 or moving_pos.y < 0 or moving_pos.y > loop_grid.high or moving_pos.x > loop_grid[moving_pos.y].high:
             break
         if loop_grid[moving_pos.y][moving_pos.x] == LOOP:
             let piece = grid[moving_pos.y][moving_pos.x]
-            if is_vertical(piece):
-                left = true
+            let pipe = get piece
+            if is_vertical(pipe):
+                # echo "vertical"
                 left_amount += 1
-    
-    moving_pos = pos
-    while true:
-        moving_pos = walk(RIGHT, moving_pos)
-        # echo fmt"pos: {moving_pos}"
-        # echo fmt"moving_pos.x < 0: {moving_pos.x < 0}"
-        # echo fmt"moving_pos.y < 0: {moving_pos.y < 0}"
-        # echo fmt"moving_pos.y > loop_grid.high: {moving_pos.y > loop_grid.high}"
-        # echo fmt"moving_pos.x > loop_grid[moving_pos.y].high: {moving_pos.x > loop_grid[moving_pos.y].high}"
-        if moving_pos.x < 0 or moving_pos.y < 0 or moving_pos.y > loop_grid.high or moving_pos.x > loop_grid[moving_pos.y].high:
-            # echo "break"
-            break
-        if loop_grid[moving_pos.y][moving_pos.x] == LOOP:
-            # echo "LOOP"
-            let piece = grid[moving_pos.y][moving_pos.x]
-            if is_vertical(piece):
-                right = true
-                right_amount += 1
-    
-    echo fmt"up: {up_amount}, down: {down_amount}, left: {left_amount}, right: {right_amount}"
-    echo fmt"up: {up}, down: {down}, left: {left}, right: {right}"
+            elif is_7(pipe):
+                prev = "7"
+            elif is_J(pipe):
+                prev = "J"
+            elif is_F(pipe):
+                if prev == "J":
+                    left_amount += 1
+                prev = "F"
+            elif is_L(pipe):
+                if prev == "7":
+                    left_amount += 1
+                prev = "L"
+                
+    return odd left_amount
 
-    if up and down and left and right:
-    #     and
-    #    all([up_amount, down_amount, left_amount, right_amount], even) or
-    #    all([up_amount, down_amount, left_amount, right_amount], odd):
-        return true
-    return false
-
-# var enclosed_area = 0
-# for r in 0 ..< loop_grid.len:
-#     for c in 0 ..< loop_grid[r].len:
-#         if loop_grid[r][c] == OUTSIDE:
-#             if check_enclosed((x: c, y: r)):
-#                 loop_grid[r][c] = INSIDE
-#                 enclosed_area += 1
-
-
-echo fmt"loop_grid.high: {loop_grid.high}"
-echo fmt"loop_grid[0].high: {loop_grid[0].high}"
-echo check_enclosed((x: 13, y: 5))
-
-# mask the grid with the loop grid
-# var masked_grid: PieceGrid = @[]
-
+var enclosed_area = 0
+for r in 0 ..< loop_grid.len:
+    for c in 0 ..< loop_grid[r].len:
+        if loop_grid[r][c] == OUTSIDE:
+            if check_enclosed((x: c, y: r)):
+                loop_grid[r][c] = INSIDE
+                enclosed_area += 1
 
 for row in loop_grid:
     echo row.join("")
 
 echo int steps.len / 2
-# echo enclosed_area
+echo enclosed_area
