@@ -56,9 +56,7 @@ func find_galaxies(grid: CharGrid): seq[Galaxy] =
 func grid_distance(a: Position, b: Position): int =
     abs(a.x - b.x) + abs(a.y - b.y)
 
-var gaps_crossed = 0
-
-proc grid_distance_expanded(
+func grid_distance_expanded(
     a: Position,
     b: Position,
     expansion_rows: seq[int],
@@ -67,32 +65,37 @@ proc grid_distance_expanded(
 ): int =
     let x_span = toSeq (if a.x < b.x: (a.x+1)..(b.x-1) else: (b.x+1)..(a.x-1))
     let y_span = toSeq (if a.y < b.y: (a.y+1)..(b.y-1) else: (b.y+1)..(a.y-1))
-
-    # echo fmt"x_span: {x_span}"
-    # echo fmt"y_span: {y_span}"
     
     var expanded_gaps = 0
     for col in expansion_cols:
         if col in x_span:
-            # echo fmt"col: {col}"
             expanded_gaps += 1
     for row in expansion_rows:
         if row in y_span:
-            # echo fmt"row: {row}"
             expanded_gaps += 1
     
-    # echo fmt"expanded_gaps: {expanded_gaps}"
-    # echo fmt"a: {a}, b: {b}"
-    # echo fmt"{grid_distance(a, b)} + {expanded_gaps} * {expansion} = {grid_distance(a, b) + expanded_gaps * expansion}"
-
-    gaps_crossed += expanded_gaps
     result = grid_distance(a, b) + expanded_gaps * (if expansion == 1: expansion else: expansion - 1)
 
+func calc_all_distances(galaxies: seq[Galaxy], expansion_rows: seq[int] = @[], expansion_cols: seq[int] = @[], expansion: int = 0): seq[int] =
+    var ids_tried: seq[tuple[a: int, b: int]] = @[]
+    for galaxy in galaxies:
+        for other in galaxies:
+            if (galaxy.id, other.id) in ids_tried:
+                continue
+            ids_tried.add((galaxy.id, other.id))
+            ids_tried.add((other.id, galaxy.id))
+            if galaxy.id != other.id:
+                result.add(
+                    grid_distance_expanded(
+                        galaxy.position,
+                        other.position,
+                        expansion_rows,
+                        expansion_cols,
+                        expansion = expansion
+                    )
+                )
 
 let char_grid = make_char_grid input
-
-# for row in char_grid:
-#     echo row.join("")
 
 let empty_cols = find_empty_cols char_grid
 let empty_rows = find_empty_rows char_grid
@@ -100,53 +103,10 @@ let empty_rows = find_empty_rows char_grid
 echo fmt"empty_cols: {empty_cols}"
 echo fmt"empty_rows: {empty_rows}"
 
-# let expanded_grid = expand_grid char_grid
-
-# for row in expanded_grid:
-#     echo row.join("")
-
 let galaxies = find_galaxies char_grid
 
-var distances1: seq[int] = @[]
-var distances2: seq[int] = @[]
-var distances3: seq[int] = @[]
-var ids_tried: seq[tuple[a: int, b: int]] = @[]
+let distances_exp_1 = calc_all_distances(galaxies, expansion_rows = empty_rows, expansion_cols = empty_cols, expansion = 1)
+let distances_exp_1m = calc_all_distances(galaxies, expansion_rows = empty_rows, expansion_cols = empty_cols, expansion = 1_000_000)
 
-for galaxy in galaxies:
-    # echo fmt"galaxy: {galaxy}"
-    for other in galaxies:
-        if (galaxy.id, other.id) in ids_tried:
-            continue
-        ids_tried.add((galaxy.id, other.id))
-        ids_tried.add((other.id, galaxy.id))
-        if galaxy.id != other.id:
-            let distance1 = grid_distance_expanded(
-                galaxy.position,
-                other.position,
-                empty_rows,
-                empty_cols,
-                expansion = 1_000_000
-            )
-            distances1.add(distance1)
-            # let distance2 = grid_distance_expanded(
-            #     galaxy.position,
-            #     other.position,
-            #     empty_rows,
-            #     empty_cols,
-            #     expansion = 10
-            # )
-            # distances2.add(distance2)
-            # let distance3 = grid_distance_expanded(
-            #     galaxy.position,
-            #     other.position,
-            #     empty_rows,
-            #     empty_cols,
-            #     expansion = 100
-            # )
-            # distances3.add(distance3)
-
-echo fmt"distances: {distances1.foldl(a + b)}"
-# echo fmt"distances: {distances2} = {distances2.foldl(a + b)}"
-# echo fmt"distances: {distances3} = {distances3.foldl(a + b)}"
-# echo distances1.len
-# echo gaps_crossed/3
+echo fmt"part 1: {distances_exp_1.foldl(a + b)}"
+echo fmt"part 2: {distances_exp_1m.foldl(a + b)}"
