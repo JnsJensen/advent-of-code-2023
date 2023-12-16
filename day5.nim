@@ -21,8 +21,6 @@ type
     ]
 
 iterator flatten[T](source: openArray[T]): auto =
-    ## Flattens an arbitrarily nested
-    ## sequence
     when T isnot seq:
         for element in source:
             yield element
