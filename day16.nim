@@ -135,4 +135,7 @@ while lasers.len > 0:
     # if count > 20:
     #     break
 
+# IDEA: detect cycles by keeping a sequence of positions travelled by the laser, and if it ever end
+# up in the same position and with the same direction, then we have a cycle
+
 echo assemble energised_grid
