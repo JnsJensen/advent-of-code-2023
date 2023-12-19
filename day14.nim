@@ -2,6 +2,7 @@ import strutils
 import sequtils
 import std/enumerate
 import strformat
+import lib
 
 type
     Rock = enum
@@ -12,24 +13,6 @@ type
 
 # let input = strip readFile "inputs/day14.txt"
 let input = strip readFile "inputs/day14-example.txt"
-
-iterator pairs[T](sequence: seq[T]): tuple[lower: T, upper: T] =
-    var i = 0
-    while i < sequence.len - 1:
-        yield (sequence[i], sequence[i+1])
-        inc(i, 1)
-
-iterator reverse[T](numbers: seq[T]): T =
-    for i in 0 ..< numbers.len:
-        yield numbers[numbers.len - i - 1]
-
-func rotate[T](matrix: seq[seq[T]]): seq[seq[T]] =
-    for i in 0 .. matrix[0].high:
-        var row: seq[T] = @[]
-        for j in 0 .. matrix.high:
-            row.add(matrix[j][i])
-        result.add(row)
-    toSeq reverse result
 
 func find_square_rock(row: seq[Rock]): seq[int] =
     for (cidx, c) in enumerate(row):

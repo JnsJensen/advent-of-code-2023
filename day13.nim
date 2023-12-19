@@ -1,13 +1,10 @@
 import strutils
 import sequtils
 import std/enumerate
+import lib
 
 # let input = strip readFile "inputs/day13-example.txt"
 let input = strip readFile "inputs/day13.txt"
-
-iterator reverse[T](numbers: seq[T]): T =
-    for i in 0 ..< numbers.len:
-        yield numbers[numbers.len - i - 1]
 
 func find_reflection_potentials[T](line: seq[T]): seq[int] =
     for c in 0 .. line.high - 1:

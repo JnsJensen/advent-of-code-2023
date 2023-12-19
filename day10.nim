@@ -1,6 +1,7 @@
 import std/strutils
 import options
 import std/enumerate
+import lib
 
 type
     Direction = enum
@@ -18,9 +19,6 @@ type
     LoopGrid = seq[seq[TileType]]
     CharGrid = seq[seq[char]]
     Position = tuple[x: int, y: int]
-
-# func even(n: int): bool = n mod 2 == 0
-func odd(n: int): bool = n mod 2 == 1
 
 func opposite(direction: Direction): Direction =
     case direction:

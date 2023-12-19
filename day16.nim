@@ -2,6 +2,7 @@ import strutils
 import sequtils
 import strformat
 import std/enumerate
+import lib
 # import std/os
 
 type
@@ -22,18 +23,6 @@ type
         SPLITTER_VER = "|"
     TileGrid = seq[seq[Tile]]
     EnergisedGrid = seq[seq[int]]
-
-iterator flatten[T](source: openArray[T]): auto =
-    when T isnot seq:
-        for element in source:
-            yield element
-    else:
-        for each in source:
-            for e in flatten(each):
-                yield e
-
-proc assemble[T](input: seq[seq[T]]): string =
-    input.mapIt(it.join("")).join("\n")
 
 # let input = strip readFile "inputs/day16-example.txt"
 let input = strip readFile "inputs/day16.txt"

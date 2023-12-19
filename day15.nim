@@ -5,6 +5,7 @@ import std/enumerate
 import options
 {.experimental: "caseStmtMacros".}
 import fusion/matching
+import lib
 
 type
     Op = enum
