@@ -7,6 +7,7 @@ import lib
 
 type
     Card = enum
+        JOKER = "X"
         TWO = "2"
         THREE = "3"
         FOUR = "4"
@@ -52,17 +53,37 @@ func hand_type(hand: Hand): HandType =
     if any(vals, proc (it: int): bool = it == 5):
         result = HandType.FIVE_OF_A_KIND
     elif any(vals, proc (it: int): bool = it == 4):
-        result = HandType.FOUR_OF_A_KIND
+        if counts.getOrDefault(Card.JOKER, 0) > 0:
+            result = HandType.FIVE_OF_A_KIND
+        else:
+            result = HandType.FOUR_OF_A_KIND
     elif any(vals, proc (it: int): bool = it == 3) and any(vals, proc (it: int): bool = it == 2):
-        result = HandType.FULL_HOUSE
+        if counts.getOrDefault(Card.JOKER, 0) > 0:
+            result = HandType.FIVE_OF_A_KIND
+        else:
+            result = HandType.FULL_HOUSE
     elif any(vals, proc (it: int): bool = it == 3):
-        result = HandType.THREE_OF_A_KIND
+        if counts.getOrDefault(Card.JOKER, 0) > 0:
+            result = HandType.FOUR_OF_A_KIND
+        else:
+            result = HandType.THREE_OF_A_KIND
     elif count(vals, 2) == 2:
-        result = HandType.TWO_PAIR
+        if counts.getOrDefault(Card.JOKER, 0) == 2:
+            result = HandType.FOUR_OF_A_KIND
+        elif counts.getOrDefault(Card.JOKER, 0) == 1:
+            result = HandType.FULL_HOUSE
+        else:
+            result = HandType.TWO_PAIR
     elif count(vals, 2) == 1:
-        result = HandType.ONE_PAIR
+        if counts.getOrDefault(Card.JOKER, 0) > 0:
+            result = HandType.THREE_OF_A_KIND
+        else:
+            result = HandType.ONE_PAIR
     else:
-        result = HandType.HIGH_CARD
+        if counts.getOrDefault(Card.JOKER, 0) > 0:
+            result = HandType.ONE_PAIR
+        else:
+            result = HandType.HIGH_CARD
 
 proc card_cmp(a: Card, b: Card): int =
     result = cmp(b, a)
@@ -97,3 +118,19 @@ let sorted_plays: seq[Play] = toSeq plays.sorted(play_cmp)
 var sorted_bids: seq[int] = sorted_plays.mapIt(it.bid)
 
 echo "Part 1: ", zip(toSeq reverse toSeq 1..sorted_bids.len, sorted_bids).mapIt(it[0] * it[1]).foldl(a + b)
+
+var plays_jokers: seq[Play] =  input.split("\n").mapIt(it.split(" ")).mapIt(
+    (
+        hand: it[0].mapIt(if it == 'J': 'X' else: it).mapIt(parseEnum[Card](fmt"{it}")),
+        bid: parseInt it[1],
+        htype: HandType.NONE
+    )
+)
+
+for p in 0..plays_jokers.high:
+    plays_jokers[p].htype = hand_type(plays_jokers[p].hand)
+    
+let sorted_plays_jokers: seq[Play] = toSeq plays_jokers.sorted(play_cmp)
+var sorted_bids_jokers: seq[int] = sorted_plays_jokers.mapIt(it.bid)
+
+echo "Part 2: ", zip(toSeq reverse toSeq 1..sorted_bids_jokers.len, sorted_bids_jokers).mapIt(it[0] * it[1]).foldl(a + b)
