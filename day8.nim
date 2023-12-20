@@ -73,6 +73,7 @@ echo "Ending nodes:   ", all_ending_ids.join(", ")
 var current_nodes: seq[Node] = all_starting_ids.mapIt(nodes[it])
 # var found_node_amount: seq[bool] = all_starting_ids.mapIt(false)
 var found_p2 = false
+var cycles_found: seq[int] = all_starting_ids.mapIt(-1)
 var count_p2 = 0
 
 while not found_p2:
@@ -81,20 +82,16 @@ while not found_p2:
         for (idx, node) in enumerate(current_nodes):
             current_nodes[idx] = step(nodes, node, instruction)
         
-        # var all_ending_nodes = true
-        var ending_nodes = 0
-        for node in current_nodes:
+        for (nidx, node) in enumerate current_nodes:
             if node.id.endsWith("Z"):
-                ending_nodes += 1
-        if ending_nodes > 2:
-            echo "Found ", ending_nodes, " ending nodes: ", current_nodes.mapIt(it.id).join(", ")
-        let all_ending_nodes = ending_nodes == current_nodes.len
-        
-        if all_ending_nodes:
+                if cycles_found[nidx] == -1:
+                    cycles_found[nidx] = count_p2
+
+        if -1 notin cycles_found:
             echo "Found it!"
-            echo "Part2 ", count_p2
+            echo "Step: ", count_p2, " Current nodes: ", current_nodes.mapIt(it.id).join(", ")
+            echo "      ", len cycles_found, " cycles found: ", cycles_found
             found_p2 = true
             break
 
-        if count_p2 mod 1000000 == 0:
-            echo "Step: ", count_p2, " Current nodes: ", current_nodes.mapIt(it.id).join(", ")
+echo "Part 2: with cycels ", cycles_found.join(", "), " and lcm = ", lcm cycles_found
