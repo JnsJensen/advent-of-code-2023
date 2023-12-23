@@ -13,7 +13,7 @@ iterator flatten*[T](source: openArray[T]): auto =
             for e in flatten(each):
                 yield e
 
-iterator pairs*[T](sequence: seq[T]): tuple[lower: T, upper: T] =
+iterator cpairs*[T](sequence: seq[T]): tuple[lower: T, upper: T] =
     var i = 0
     while i < sequence.len - 1:
         yield (sequence[i], sequence[i+1])
